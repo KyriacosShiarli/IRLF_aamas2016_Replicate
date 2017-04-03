@@ -141,8 +141,8 @@ class Model(object):
 			if self.disc.feature==toy_problem_squared:
 				rf[15]=0
 			elif self.disc.feature==toy_problem_simple:	
-				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = 1;rf[-self.disc.boundaries[0]-1] = 1 
-				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+3] = -0;rf[-self.disc.boundaries[0]] = -0 			
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = 1;rf[-self.disc.boundaries[0]-1] = 1
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+3] = -0;rf[-self.disc.boundaries[0]] = -0
 		elif choice == "avoid_reach":
 			if self.disc.feature==toy_problem_squared:
 				rf[0]=0;rf[15]=-20

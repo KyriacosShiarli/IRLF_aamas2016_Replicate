@@ -41,14 +41,14 @@ def learn_from_failure(expert1,expert2,apprentice,iterations,steps,initial_state
 	D=.7
 	delta_c = .96
 	disc = expert1.disc
-	
+
 	a,s,f = expert1.feature_f.shape
 	#experts
-	exp1_policy,ignore,exp1_state_exp,exp1_all = inference(expert1,steps,initial_states,discount =0.9)
+	exp1_policy,ignore,exp1_state_exp,exp1_all = inference(expert1,steps,initial_states,discount =0.90)
 	if initial_bad_states == None:
-		exp2_policy,ignore,exp2_state_exp,exp2_all = inference(expert2,steps,initial_states,discount = 0.9)
+		exp2_policy,ignore,exp2_state_exp,exp2_all = inference(expert2,steps,initial_states,discount = 0.90)
 	else:
-		exp2_policy,ignore,exp2_state_exp,exp2_all = inference(expert2,steps,initial_bad_states,discount = 0.9)
+		exp2_policy,ignore,exp2_state_exp,exp2_all = inference(expert2,steps,initial_bad_states,discount = 0.90)
 	#print "POLICYY", exp1_policy.shape
 
 	exp1_feature_avg = np.dot(exp1_state_exp.reshape(s*a,order = "F"),expert1.feature_f.reshape(s*a,f,order ="F"))
@@ -75,21 +75,21 @@ def learn_from_failure(expert1,expert2,apprentice,iterations,steps,initial_state
 	delay = 0
 
 	for i in range(iterations):
-		apprentice_policy,z_stat,a_state_exp,a_all = inference(apprentice,steps,initial_states,z_states = None,discount = 0.9)
+		apprentice_policy,z_stat,a_state_exp,a_all = inference(apprentice,steps,initial_states,z_states = None,discount = 0.95)
 		apprentice_feature_avg = np.dot(a_state_exp.reshape(s*a,order = "F"),apprentice.feature_f.reshape(s*a,f,order = "F"))
 		difference_exp1 = exp1_feature_avg - apprentice_feature_avg
 		if initial_bad_states == None:
 			difference_exp2 = exp2_feature_avg - apprentice_feature_avg
 		else:
-			apprentice_policy,z_stat,a_state_exp_bad,a_all = inference(apprentice,steps,initial_bad_states,z_states = None,discount = 0.9)
+			apprentice_policy,z_stat,a_state_exp_bad,a_all = inference(apprentice,steps,initial_bad_states,z_states = None,discount = 0.95)
 			apprentice_feature_avg_bad = np.dot(a_state_exp_bad.reshape(s*a,order = "F"),apprentice.feature_f.reshape(s*a,f,order = "F"))
-			difference_exp2 = apprentice_feature_avg_bad - exp2_feature_avg 
+			difference_exp2 = apprentice_feature_avg_bad - exp2_feature_avg
 		if i ==0:
 			difference_random = np.copy(difference_exp2)
 			apprentice_feature_avg_bad_prev = apprentice_feature_avg*0
 		if failure =="L2":
 			#first update the alphas according to their gradient.
-			apprentice.w = fn.pin_to_threshold(apprentice.w + rate*difference_exp1,C,-C)		
+			apprentice.w = fn.pin_to_threshold(apprentice.w + rate*difference_exp1,C,-C)
 			if i>delay:
 				apprentice.zeta =-difference_exp2
 			#print "ZETAAA",apprentice.zeta
@@ -97,23 +97,23 @@ def learn_from_failure(expert1,expert2,apprentice,iterations,steps,initial_state
 		elif failure == "L1":
 			apprentice.w = apprentice.w + rate*difference_exp1
 			#apprentice.zeta = apprentice.zeta + rate2*(difference_exp2+ D*apprentice.zeta)
-			apprentice.zeta = -0.9*difference_exp2
+			apprentice.zeta = 0.9*difference_exp2
 		elif failure == "false":
 			apprentice.w = apprentice.w + rate*difference_exp1
 		elif failure == "slow":
-			apprentice.w = apprentice.w + rate*difference_exp1	
+			apprentice.w = apprentice.w + rate*difference_exp1
 			C = C*delta_c
 			if 1./C>D:
 				C = 1/D
 			if i >delay:
 				apprentice.zeta =-difference_exp2/(C)
-		apprentice_feature_avg_bad_prev =apprentice_feature_avg_bad 
+		apprentice_feature_avg_bad_prev =apprentice_feature_avg_bad
 		apprentice.reward_f = apprentice.buildRewardFunction()
 		#evaluation
-		a_on_e = eval_value(expert1.w,apprentice_policy,apprentice,test_states,steps) 
-		a_o_t = eval_value(expert2.w,apprentice_policy,apprentice,test_states,steps) 
+		a_on_e = eval_value(expert1.w,apprentice_policy,apprentice,test_states,steps)
+		a_o_t = eval_value(expert2.w,apprentice_policy,apprentice,test_states,steps)
 		#if i ==iterations-1:
-		if i <iterations:			
+		if i <iterations:
 			print "failure",failure
 			print "Iteration",i
 			print "Aprentice on Expert" ,a_on_e
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 		expert1 = Model(disc,"target", load_saved = True)
 		print "LENl",len(expert1.w)
 		test_states = np.random.randint(0,disc.tot_states,10)
-		bad_states = np.random.randint(0,disc.tot_states,5)			
+		bad_states = np.random.randint(0,disc.tot_states,5)
 		for i in range(runs):
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			initial_states = np.random.randint(0,disc.tot_states,20)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 			expert2 = Model(disc,"obstacle2", load_saved = False)
 			expert1 = Model(disc,"avoid_reach", load_saved = True)
 		test_states = np.random.randint(0,disc.tot_states,10)
-		bad_states = np.random.randint(0,disc.tot_states,5)	
+		bad_states = np.random.randint(0,disc.tot_states,5)
 		for enn,size in enumerate(training_sizes):
 			print "SIZE=",size
 			print "============================================================================"
@@ -211,21 +211,21 @@ if __name__ == "__main__":
 		expert2 = Model(disc,"obstacle2_reach", load_saved = False)
 		expert1 = Model(disc,"avoid_reach", load_saved = True)
 		test_states = np.random.randint(0,disc.tot_states,10)
-		bad_states = np.random.randint(0,disc.tot_states,5)	
+		bad_states = np.random.randint(0,disc.tot_states,5)
 		for i in range(runs):
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			initial_states = np.random.randint(0,disc.tot_states,5)
 			results_failure = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "L1",initial_bad_states = bad_states)
-			if i ==0: 
+			if i ==0:
 				apprentice.visualise_reward()
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			results_normal = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false",initial_bad_states = bad_states)
-			if i ==0: 
-				apprentice.visualise_reward()			
+			if i ==0:
+				apprentice.visualise_reward()
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			results_slow = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "slow",initial_bad_states = bad_states)
-			if i ==0: 
-				apprentice.visualise_reward()			
+			if i ==0:
+				apprentice.visualise_reward()
 			results_array.append([results_failure,results_normal,results_slow])
 		fn.pickle_saver(results_array,direc+"/"+name+".pkl")
 
@@ -242,21 +242,21 @@ if __name__ == "__main__":
 		expert2 = Model(disc,"obstacle2", load_saved = False)
 		expert1 = Model(disc,"avoid_reach", load_saved = True)
 		test_states = np.random.randint(0,disc.tot_states,100)
-		bad_states = np.random.randint(0,disc.tot_states,5)	
+		bad_states = np.random.randint(0,disc.tot_states,5)
 		for i in range(runs):
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			initial_states = np.random.randint(0,disc.tot_states,10)
 			results_failure = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "L1",initial_bad_states = bad_states)
-			if i ==0: 
+			if i ==0:
 				apprentice.visualise_reward()
 			apprentice = Model(disc_a,"uniform", load_saved = True)
 			results_normal = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false",initial_bad_states = bad_states)
-			if i ==0: 
-				apprentice.visualise_reward()			
+			if i ==0:
+				apprentice.visualise_reward()
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			results_slow = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "slow",initial_bad_states = bad_states)
-			if i ==0: 
-				apprentice.visualise_reward()			
+			if i ==0:
+				apprentice.visualise_reward()
 			results_array.append([results_failure,results_normal,results_slow])
 		fn.pickle_saver(results_array,direc+"/"+name+".pkl")
 
@@ -278,14 +278,14 @@ if __name__ == "__main__":
 			initial_states = np.arange(0,disc.tot_states)
 			results_failure = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false")
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
-			results_normal = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false")		
+			results_normal = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false")
 			apprentice = Model(disc_a,"dual_reward", load_saved = True)
 			results_slow = learn_from_failure(expert1,expert2,apprentice,iterations_per_run,steps,initial_states,test_states,failure = "false")
 			results_array.append([results_failure,results_normal,results_slow])
 		fn.pickle_saver(results_array,direc+"/"+name+".pkl")
 
 
-		
+
 	#experiment_overlapping(name = "overlapping",steps =15,iterations_per_run= 40,runs = 1)
 	#experiment_complementary(name = "overlapping",steps =15,iterations_per_run= 40,runs = 1)
 	#experiment_constrasting(name = "contrasting",steps =15,iterations_per_run= 40,runs = 1)

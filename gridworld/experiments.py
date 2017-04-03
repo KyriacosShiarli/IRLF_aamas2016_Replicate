@@ -8,7 +8,7 @@ from tp_data_structures import EmptyObject
 #from plots import *
 from tp_RFeatures import toy_problem_simple,toy_problem_squared
 from tp_plots import plot_results
-from tp_learn_dev import learn_from_failure
+from tp_learn import learn_from_failure
 
 # Experiments go as follows:
 # Initialise a discretisation model
@@ -174,14 +174,14 @@ if __name__ == "__main__":
 			results_array.append([results_failure,results_normal,results_slow])
 		fn.pickle_saver(results_array,direc+"/"+name+".pkl")
 
-		
+	experiment_contrasting(name = "contrasting",steps =15,iterations_per_run= 40,runs = 2)
 	experiment_overlapping(name = "overlapping",steps =15,iterations_per_run= 40,runs = 2)
 	experiment_complementary(name = "complementary",steps =15,iterations_per_run= 40,runs = 2)
-	experiment_contrasting(name = "contrasting",steps =15,iterations_per_run= 40,runs = 2)
-	experiment_cvx_contrasting(name = "cvx_contrasting",steps =15,iterations_per_run= 40,runs = 2)
+
+	#experiment_cvx_contrasting(name = "cvx_contrasting",steps =15,iterations_per_run= 40,runs = 2)
 	plot_results("cvx_contrasting","results/aamas",2)
 	plot_results("complementary","results/aamas",2)
-	plot_results("contrasting","results/aamas",2)
+	#plot_results("contrasting","results/aamas",2)
 	plot_results("complementary","results/aamas",2)
 	#experiment_complementary(name = "complementary",steps =15,iterations_per_run=60 ,runs = 2)
 	#xperiment_overlapping(name = "overlapping",steps =15,iterations_per_run= 60,runs = 2)
